@@ -1,15 +1,19 @@
 import os
 
-from flask import Flask, jsonify
+from flask import Flask
 
-from app.config import config_by_name
 from app.config import DevelopmentConfig, config_by_name
+from app.routes.health_routes import health_bp
 
 
 def create_app(config_name=None):
     app = Flask(__name__)
 
-    environment = config_name or os.getenv("APP_ENV", "development")
+    environment = config_name or os.getenv(
+        "APP_ENV",
+        "development",
+    )
+
     configuration = config_by_name.get(
         environment,
         DevelopmentConfig,
@@ -17,12 +21,6 @@ def create_app(config_name=None):
 
     app.config.from_object(configuration)
 
-    @app.get("/health")
-    def health():
-        return jsonify(
-            service="WebHawk Lite",
-            status="ok",
-            environment=app.config["APP_ENV"],
-        )
+    app.register_blueprint(health_bp)
 
     return app
