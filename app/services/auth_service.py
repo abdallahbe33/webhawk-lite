@@ -1,12 +1,12 @@
 import re
 
 import bcrypt
-
-
 from app.repositories.user_repository import (
     create_user,
     find_by_email,
+    find_by_id,
 )
+
 
 import hashlib
 import uuid
@@ -15,7 +15,10 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from flask import current_app
 
-from app.repositories.session_repository import create_session
+from app.repositories.session_repository import (
+    create_session,
+    find_active_session,
+)
 
 EMAIL_PATTERN = re.compile(
     r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
@@ -108,10 +111,7 @@ def login_user(data, ip_address):
         algorithm="HS256",
     )
 
-    token_hash = hashlib.sha256(
-        token.encode("utf-8")
-    ).hexdigest()
-
+    token_hash = hash_token(token)
     create_session(
         user_id=user.id,
         token_hash=token_hash,
@@ -120,3 +120,58 @@ def login_user(data, ip_address):
     )
 
     return user, token, expires_at
+def hash_token(token):
+    return hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
+def authenticate_token(token):
+    try:
+        payload = jwt.decode(
+            token,
+            current_app.config["JWT_SECRET_KEY"],
+            algorithms=["HS256"],
+        )
+    except jwt.ExpiredSignatureError as error:
+        raise ServiceError(
+            "Token has expired",
+            status_code=401,
+        ) from error
+    except jwt.InvalidTokenError as error:
+        raise ServiceError(
+            "Invalid token",
+            status_code=401,
+        ) from error
+
+    try:
+        user_id = int(payload["sub"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ServiceError(
+            "Invalid token payload",
+            status_code=401,
+        ) from error
+
+    session = find_active_session(
+        hash_token(token)
+    )
+
+    if not session:
+        raise ServiceError(
+            "Session is inactive or expired",
+            status_code=401,
+        )
+
+    if session.user_id != user_id:
+        raise ServiceError(
+            "Token does not match its session",
+            status_code=401,
+        )
+
+    user = find_by_id(user_id)
+
+    if not user:
+        raise ServiceError(
+            "User no longer exists",
+            status_code=401,
+        )
+
+    return user, session
