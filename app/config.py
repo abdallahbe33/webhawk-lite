@@ -10,7 +10,14 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "development-secret")
     APP_ENV = os.getenv("APP_ENV", "development")
 
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URL",
+        "sqlite:///webhawk.db",
+    )
 
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    
 class DevelopmentConfig(Config):
     DEBUG = True
 

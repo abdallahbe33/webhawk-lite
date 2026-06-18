@@ -3,6 +3,7 @@ import os
 from flask import Flask
 
 from app.config import DevelopmentConfig, config_by_name
+from app.extensions import db, migrate
 from app.routes.health_routes import health_bp
 
 
@@ -20,6 +21,11 @@ def create_app(config_name=None):
     )
 
     app.config.from_object(configuration)
+
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    from app import models
 
     app.register_blueprint(health_bp)
 
