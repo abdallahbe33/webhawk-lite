@@ -44,3 +44,11 @@ class User(db.Model):
         onupdate=utc_now,
         nullable=False,
     )
+
+def to_dict(self):
+    return {
+        "id": self.id,
+        "name": self.name,
+        "email": self.email,
+        "created_at": self.created_at.isoformat(),
+    }
