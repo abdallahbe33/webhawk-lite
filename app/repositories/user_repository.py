@@ -21,3 +21,6 @@ def create_user(name, email, password_hash):
     db.session.commit()
 
     return user
+
+def find_by_id(user_id):
+    return db.session.get(User, user_id)

@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
+from app.utils.auth import jwt_required
 from app.services.auth_service import (
     ServiceError,
     login_user,
@@ -46,4 +47,10 @@ def login():
         token_type="Bearer",
         expires_at=expires_at.isoformat(),
         user=user.to_dict(),
+    )
+@auth_bp.get("/me")
+@jwt_required
+def current_user():
+    return jsonify(
+        user=g.current_user.to_dict()
     )
