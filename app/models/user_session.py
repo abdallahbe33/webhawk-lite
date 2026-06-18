@@ -7,28 +7,30 @@ def utc_now():
     return datetime.now(timezone.utc)
 
 
-class User(db.Model):
-    __tablename__ = "users"
+class UserSession(db.Model):
+    __tablename__ = "user_sessions"
 
     id = db.Column(
         db.Integer,
         primary_key=True,
     )
 
-    name = db.Column(
-        db.String(120),
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
 
-    email = db.Column(
-        db.String(255),
+    token_hash = db.Column(
+        db.String(64),
         unique=True,
         nullable=False,
         index=True,
     )
 
-    password_hash = db.Column(
-        db.String(255),
+    ip_address = db.Column(
+        db.String(45),
         nullable=False,
     )
 
@@ -38,17 +40,18 @@ class User(db.Model):
         nullable=False,
     )
 
-    updated_at = db.Column(
+    expires_at = db.Column(
         db.DateTime(timezone=True),
-        default=utc_now,
-        onupdate=utc_now,
         nullable=False,
     )
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "email": self.email,
-            "created_at": self.created_at.isoformat(),
-        }
+    is_active = db.Column(
+        db.Boolean,
+        default=True,
+        nullable=False,
+    )
+
+    user = db.relationship(
+        "User",
+        backref="sessions",
+    )

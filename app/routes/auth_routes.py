@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
-
 from app.services.auth_service import (
     ServiceError,
+    login_user,
     register_user,
 )
 
@@ -24,3 +24,26 @@ def register():
         message="User registered successfully",
         user=user.to_dict(),
     ), 201
+
+
+@auth_bp.post("/login")
+def login():
+    data = request.get_json(silent=True) or {}
+
+    try:
+        user, token, expires_at = login_user(
+            data,
+            request.remote_addr or "unknown",
+        )
+    except ServiceError as error:
+        return jsonify(
+            error=error.message
+        ), error.status_code
+
+    return jsonify(
+        message="Login successful",
+        access_token=token,
+        token_type="Bearer",
+        expires_at=expires_at.isoformat(),
+        user=user.to_dict(),
+    )

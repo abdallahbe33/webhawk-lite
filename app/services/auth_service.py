@@ -2,11 +2,20 @@ import re
 
 import bcrypt
 
+
 from app.repositories.user_repository import (
     create_user,
     find_by_email,
 )
 
+import hashlib
+import uuid
+from datetime import datetime, timedelta, timezone
+
+import jwt
+from flask import current_app
+
+from app.repositories.session_repository import create_session
 
 EMAIL_PATTERN = re.compile(
     r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
@@ -53,3 +62,61 @@ def register_user(data):
         email=email,
         password_hash=password_hash,
     )
+
+
+def login_user(data, ip_address):
+    email = str(data.get("email", "")).strip().lower()
+    password = str(data.get("password", ""))
+
+    user = find_by_email(email)
+
+    if not user:
+        raise ServiceError(
+            "Invalid email or password",
+            status_code=401,
+        )
+
+    password_matches = bcrypt.checkpw(
+        password.encode("utf-8"),
+        user.password_hash.encode("utf-8"),
+    )
+
+    if not password_matches:
+        raise ServiceError(
+            "Invalid email or password",
+            status_code=401,
+        )
+
+    now = datetime.now(timezone.utc)
+
+    expires_at = now + timedelta(
+        hours=current_app.config[
+            "JWT_EXPIRATION_HOURS"
+        ]
+    )
+
+    payload = {
+        "sub": str(user.id),
+        "jti": str(uuid.uuid4()),
+        "iat": now,
+        "exp": expires_at,
+    }
+
+    token = jwt.encode(
+        payload,
+        current_app.config["JWT_SECRET_KEY"],
+        algorithm="HS256",
+    )
+
+    token_hash = hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
+
+    create_session(
+        user_id=user.id,
+        token_hash=token_hash,
+        ip_address=ip_address,
+        expires_at=expires_at,
+    )
+
+    return user, token, expires_at

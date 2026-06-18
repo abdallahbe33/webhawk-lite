@@ -14,10 +14,18 @@ class Config:
         "DATABASE_URL",
         "sqlite:///webhawk.db",
     )
+    JWT_SECRET_KEY = os.getenv(
+    "JWT_SECRET_KEY",
+    SECRET_KEY,
+    )
 
+    JWT_EXPIRATION_HOURS = int(
+    os.getenv("JWT_EXPIRATION_HOURS", "24")
+    )
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    
+
 class DevelopmentConfig(Config):
     DEBUG = True
 
