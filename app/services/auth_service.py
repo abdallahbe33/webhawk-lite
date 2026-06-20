@@ -17,7 +17,9 @@ from flask import current_app
 
 from app.repositories.session_repository import (
     create_session,
+    deactivate_session,
     find_active_session,
+    list_active_sessions,
 )
 
 EMAIL_PATTERN = re.compile(
@@ -175,3 +177,22 @@ def authenticate_token(token):
         )
 
     return user, session
+
+
+
+def logout_user(token):
+    session = deactivate_session(
+        hash_token(token)
+    )
+
+    if not session:
+        raise ServiceError(
+            "Session not found",
+            status_code=404,
+        )
+
+    return session
+
+
+def get_active_sessions(user_id):
+    return list_active_sessions(user_id)
