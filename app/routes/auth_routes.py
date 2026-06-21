@@ -2,7 +2,9 @@ from flask import Blueprint, g, jsonify, request
 from app.utils.auth import jwt_required
 from app.services.auth_service import (
     ServiceError,
+    get_active_sessions,
     login_user,
+    logout_user,
     register_user,
 )
 
@@ -53,4 +55,35 @@ def login():
 def current_user():
     return jsonify(
         user=g.current_user.to_dict()
+    )
+
+
+@auth_bp.post("/logout")
+@jwt_required
+def logout():
+    try:
+        logout_user(g.current_token)
+    except ServiceError as error:
+        return jsonify(
+            error=error.message
+        ), error.status_code
+
+    return jsonify(
+        message="Logout successful"
+    )
+
+
+@auth_bp.get("/sessions")
+@jwt_required
+def active_sessions():
+    sessions = get_active_sessions(
+        g.current_user.id
+    )
+
+    return jsonify(
+        count=len(sessions),
+        sessions=[
+            session.to_dict()
+            for session in sessions
+        ],
     )
