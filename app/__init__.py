@@ -1,7 +1,7 @@
 import os
-
+from app import models
 from flask import Flask
-
+from app.routes.security_routes import security_bp
 from app.config import DevelopmentConfig, config_by_name
 from app.extensions import db, migrate
 from app.routes.health_routes import health_bp
@@ -26,10 +26,11 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from app import models
+
 
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp,url_prefix="/auth",)
 
     app.register_blueprint(backend_bp,url_prefix="/backends",)
+    app.register_blueprint( security_bp, url_prefix="/security",)
     return app
