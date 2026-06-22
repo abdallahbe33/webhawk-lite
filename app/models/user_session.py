@@ -56,12 +56,11 @@ class UserSession(db.Model):
         backref="sessions",
     )
 
-
-def to_dict(self):
-    return {
-        "id": self.id,
-        "ip_address": self.ip_address,
-        "created_at": self.created_at.isoformat(),
-        "expires_at": self.expires_at.isoformat(),
-        "is_active": self.is_active,
-    }
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "ip_address": self.ip_address,
+            "created_at": self.created_at.isoformat(),
+            "expires_at": self.expires_at.isoformat(),
+            "is_active": self.is_active,
+        }
