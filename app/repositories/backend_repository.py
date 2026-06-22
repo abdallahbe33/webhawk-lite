@@ -33,3 +33,20 @@ def list_backends_by_user(user_id):
     return db.session.execute(
         statement
     ).scalars().all()
+def find_owned_backend(backend_id, user_id):
+    statement = db.select(
+        BackendRegistration
+    ).filter_by(
+        id=backend_id,
+        user_id=user_id,
+    )
+
+    return db.session.execute(
+        statement
+    ).scalar_one_or_none()
+
+
+def save_backend(backend):
+    db.session.commit()
+
+    return backend
