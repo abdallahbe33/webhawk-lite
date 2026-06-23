@@ -7,6 +7,9 @@ from app.extensions import db, migrate
 from app.routes.health_routes import health_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.backend_routes import backend_bp
+from app.routes.analytics_routes import analytics_bp
+
+
 
 def create_app(config_name=None):
     app = Flask(__name__)
@@ -22,7 +25,7 @@ def create_app(config_name=None):
     )
 
     app.config.from_object(configuration)
-
+    
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -32,5 +35,7 @@ def create_app(config_name=None):
     app.register_blueprint(auth_bp,url_prefix="/auth",)
 
     app.register_blueprint(backend_bp,url_prefix="/backends",)
-    app.register_blueprint( security_bp, url_prefix="/security",)
+    app.register_blueprint(security_bp)
+    app.register_blueprint(analytics_bp)
+    
     return app

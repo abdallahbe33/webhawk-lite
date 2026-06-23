@@ -62,7 +62,11 @@ class BackendRegistration(db.Model):
         "User",
         backref="backends",
     )
-
+    security_logs = db.relationship(
+    "SecurityLog",
+    back_populates="backend",
+    cascade="all, delete-orphan"
+    )    
     def to_dict(self):
         return {
             "id": self.id,

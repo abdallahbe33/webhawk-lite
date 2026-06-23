@@ -1,7 +1,6 @@
-from app.security.sql_injection_detector import (
-    detect_sql_injection,
-)
+
 from app.security.xss_detector import detect_xss
+from app.security.sql_injection_detector import detect_sql_injection
 
 
 def flatten_values(value, field_name=""):
@@ -82,4 +81,35 @@ def scan_request_sources(path, query, body):
         "attack_type": None,
         "field": None,
         "message": "No attack patterns detected",
+    }
+
+
+
+def scan_values(data):
+    for field, value in data.items():
+        text_value = str(value)
+
+        sql_result = detect_sql_injection(text_value)
+        if sql_result:
+            return {
+                "allowed": False,
+                "attack_type": "SQL_INJECTION",
+                "field": field,
+                "message": "Request blocked due to SQL Injection pattern"
+            }
+
+        xss_result = detect_xss(text_value)
+        if xss_result:
+            return {
+                "allowed": False,
+                "attack_type": "XSS",
+                "field": field,
+                "message": "Request blocked due to XSS pattern"
+            }
+
+    return {
+        "allowed": True,
+        "attack_type": None,
+        "field": None,
+        "message": "Request is safe"
     }
