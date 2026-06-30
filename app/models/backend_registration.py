@@ -66,7 +66,13 @@ class BackendRegistration(db.Model):
     "SecurityLog",
     back_populates="backend",
     cascade="all, delete-orphan"
-    )    
+    ) 
+
+    rate_limits = db.relationship(
+    "RateLimit",
+    back_populates="backend",
+    cascade="all, delete-orphan"
+    )   
     def to_dict(self):
         return {
             "id": self.id,

@@ -50,3 +50,12 @@ def save_backend(backend):
     db.session.commit()
 
     return backend
+def find_active_by_api_key(api_key):
+    return (
+        BackendRegistration.query
+        .filter_by(
+            api_key=api_key,
+            is_active=True
+        )
+        .first()
+    )

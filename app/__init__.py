@@ -8,7 +8,7 @@ from app.routes.health_routes import health_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.backend_routes import backend_bp
 from app.routes.analytics_routes import analytics_bp
-
+from app.routes.proxy_routes import proxy_bp
 
 
 def create_app(config_name=None):
@@ -37,5 +37,5 @@ def create_app(config_name=None):
     app.register_blueprint(backend_bp,url_prefix="/backends",)
     app.register_blueprint(security_bp)
     app.register_blueprint(analytics_bp)
-    
+    app.register_blueprint(proxy_bp, url_prefix="/proxy")
     return app
