@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: webhawk
+      POSTGRES_USER: webhawk
+      POSTGRES_PASSWORD: webhawk_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webhawk -d webhawk"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  webhawk:
+    build: .
+    ports:
+      - "5050:5000"
+    environment:
+      APP_ENV: production
+      SECRET_KEY: docker-development-secret-change-me
+      JWT_SECRET_KEY: docker-jwt-secret-change-me
+      DATABASE_URL: postgresql://webhawk:webhawk_password@db:5432/webhawk
+      RATE_LIMIT_REQUESTS: 100
+      RATE_LIMIT_WINDOW_SECONDS: 60
+      RATE_LIMIT_BLOCK_SECONDS: 60
+      PROXY_TIMEOUT_SECONDS: 10
+    depends_on:
+      db:
+        condition: service_healthy
+
+  vulnerable-backend:
+    build: ./vulnerable_backend
+    ports:
+      - "5001:5001"
+
+volumes:
+  postgres_data:
